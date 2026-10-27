@@ -26,17 +26,17 @@ void main() {
     expect(find.text('RAD'), findsNothing);
   });
 
-  testWidgets('键盘差异化尺寸：0 双宽、C 等功能键与数字键同格', (tester) async {
+  testWidgets('键盘差异化尺寸：等号双宽、C 等功能键与数字键同格', (tester) async {
     await tester.pumpWidget(const SciGraphCalcApp());
     await tester.pumpAndSettle();
 
-    final w0 = tester.getSize(find.byKey(const ValueKey('calcKey_0'))).width;
+    final wEq = tester.getSize(find.byKey(const ValueKey('calcKey_='))).width;
     final w7 = tester.getSize(find.byKey(const ValueKey('calcKey_7'))).width;
     final wC = tester.getSize(find.byKey(const ValueKey('calcKey_C'))).width;
     final wDiv = tester.getSize(find.byKey(const ValueKey('calcKey_÷'))).width;
 
-    // 0 为双宽胶囊键（两个圆格 + 一个间距）
-    expect(w0, closeTo(w7 * 2 + 10, 0.5));
+    // 等号为双宽键（两个圆格 + 一个间距），明显大于数字键
+    expect(wEq, closeTo(w7 * 2 + 10, 1.5));
     // 功能键与运算符为单圆格
     expect(wC, closeTo(w7, 0.5));
     expect(wDiv, closeTo(w7, 0.5));

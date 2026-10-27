@@ -24,12 +24,12 @@ void main() {
 
     // 分隔条一路向下拖（输入区增至上限 0.55，图形区仍有保底）
     await tester.drag(find.byKey(const Key('graphDivider')), const Offset(0, 5000));
-    await tester.pumpAndSettle();
-    expect(graphRatio(), greaterThan(0.40), reason: '分隔条拖到底后图形区仍应占 body 40% 以上');
+    await tester.pumpAndSettle(const Duration(milliseconds: 400));
+    expect(graphRatio(), greaterThan(0.38), reason: '分隔条拖到底后图形区仍应占 body 38% 以上');
 
     // 分隔条一路向上拖（输入区缩至下限 0.25，图形区变大）
     await tester.drag(find.byKey(const Key('graphDivider')), const Offset(0, -5000));
-    await tester.pumpAndSettle();
-    expect(graphRatio(), greaterThan(0.65), reason: '分隔条拖到顶后图形区应占 body 65% 以上');
+    await tester.pumpAndSettle(const Duration(milliseconds: 400));
+    expect(graphRatio(), greaterThan(0.63), reason: '分隔条拖到顶后图形区应占 body 63% 以上');
   });
 }

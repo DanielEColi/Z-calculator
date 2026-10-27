@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 void main() => runApp(const SciGraphCalcApp());
 
@@ -621,6 +622,12 @@ class _CalcKeyState extends State<_CalcKey> {
   }
 }
 
+class _HistItem {
+  final String expr;
+  final String result;
+  _HistItem(this.expr, this.result);
+}
+
 class FnRow {
   String expr;
   Color color;
@@ -651,11 +658,14 @@ class _HomePageState extends State<HomePage> {
   String calcError = '';
   String calcResult = '';
   bool sciPage = false;
+  List<_HistItem> _history = [];
 
   // —— 图形 ——
   final List<TextEditingController> fnCtrls = [];
+  final List<FocusNode> fnFocus = [];
   final List<FnRow> fns = [];
   final Map<String, double> paramValues = {};
+  int _activeFn = 0;
   Viewport vp = Viewport(-6.5, 6.5, -4.2, 4.2);
   double inputFraction = 0.32;
   bool inputCollapsed = false;
@@ -664,6 +674,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    calcCtrl.addListener(_onCalcLive);
     _addFn('sin(x)');
     _addFn('a*x^2');
   }
@@ -673,6 +684,9 @@ class _HomePageState extends State<HomePage> {
     for (final c in fnCtrls) {
       c.dispose();
     }
+    for (final f in fnFocus) {
+      f.dispose();
+    }
     calcCtrl.dispose();
     super.dispose();
   }
@@ -680,8 +694,41 @@ class _HomePageState extends State<HomePage> {
   void _addFn([String expr = '']) {
     final c = TextEditingController(text: expr);
     c.addListener(_onFnChanged);
+    final idx = fnFocus.length;
+    final fn = FocusNode();
+    fn.addListener(() {
+      if (fn.hasFocus) setState(() => _activeFn = idx);
+    });
+    fnFocus.add(fn);
     fnCtrls.add(c);
     fns.add(FnRow(expr, fnPalette[fns.length % fnPalette.length]));
+    _onFnChanged();
+  }
+
+  void _removeFn(int i) {
+    fnCtrls[i].dispose();
+    fnFocus[i].dispose();
+    fnCtrls.removeAt(i);
+    fnFocus.removeAt(i);
+    fns.removeAt(i);
+    if (_activeFn >= fnFocus.length) _activeFn = fnFocus.length - 1;
+    if (_activeFn < 0) _activeFn = 0;
+    _onFnChanged();
+  }
+
+  // 在「当前聚焦」的函数输入框光标处插入符号
+  void _insertSym(String insert) {
+    if (_activeFn < 0 || _activeFn >= fnCtrls.length) return;
+    final ctrl = fnCtrls[_activeFn];
+    final base = ctrl.text;
+    final sel = ctrl.selection;
+    final pos = sel.isValid && sel.start >= 0 && sel.start <= base.length ? sel.start : base.length;
+    final ns = base.substring(0, pos) + insert + base.substring(pos);
+    ctrl.value = TextEditingValue(
+      text: ns,
+      selection: TextSelection.collapsed(offset: pos + insert.length),
+    );
+    fnFocus[_activeFn].requestFocus();
     _onFnChanged();
   }
 
@@ -746,18 +793,46 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _equals() {
-    try {
-      final src = calcCtrl.text.trim();
-      if (src.isEmpty) return;
-      final r = evaluate(src, 0, {}, _angleMode, ans);
-      ans = r;
-      calcResult = _fmtNum(r);
-    } on ExprError catch (e) {
-      calcError = e.message;
-    } catch (_) {
-      calcError = '表达式错误';
+  // 实时计算：输入即预览结果（不更新 ans、不记历史、不报错提示）
+  void _onCalcLive() {
+    final src = calcCtrl.text.trim();
+    if (src.isEmpty) {
+      if (calcResult.isNotEmpty) setState(() => calcResult = '');
+      return;
     }
+    try {
+      final r = evaluate(src, 0, {}, _angleMode, ans);
+      setState(() => calcResult = _fmtNum(r));
+    } on ExprError {
+      if (calcResult.isNotEmpty) setState(() => calcResult = '');
+    } catch (_) {
+      if (calcResult.isNotEmpty) setState(() => calcResult = '');
+    }
+  }
+
+  void _equals() {
+    final src = calcCtrl.text.trim();
+    if (src.isEmpty) return;
+    try {
+      final r = evaluate(src, 0, {}, _angleMode, ans);
+      setState(() {
+        ans = r;
+        calcResult = _fmtNum(r);
+        calcError = '';
+      });
+      _addHistory(src, _fmtNum(r));
+    } on ExprError catch (e) {
+      setState(() => calcError = e.message);
+    } catch (_) {
+      setState(() => calcError = '表达式错误');
+    }
+  }
+
+  void _addHistory(String expr, String result) {
+    setState(() {
+      _history.insert(0, _HistItem(expr, result));
+      if (_history.length > 50) _history.removeLast();
+    });
   }
 
   String _fmtNum(double r) {
@@ -776,6 +851,13 @@ class _HomePageState extends State<HomePage> {
     'C', '⌫', 'ans', '(', ')', 'π', 'e', 'x', 'x!',
     'sin(', 'cos(', 'tan(', 'asin(', 'acos(', 'atan(', 'ln(', 'log(', '√(',
   };
+
+  // 图形页符号条：[显示标签, 实际插入文本]
+  static const _symbols = [
+    ['x', 'x'], ['^', '^'], ['x²', '^2'], ['√', 'sqrt('], ['π', 'pi'], ['e', 'e'],
+    ['sin(', 'sin('], ['cos(', 'cos('], ['tan(', 'tan('], ['ln(', 'ln('],
+    ['(', '('], [')', ')'], ['+', '+'], ['−', '-'], ['×', '*'], ['÷', '/'],
+  ];
 
   Widget _keypad() {
     final rows = sciPage ? keysSci : keysBasic;
@@ -807,8 +889,8 @@ class _HomePageState extends State<HomePage> {
             height: cell,
             bg: isOp ? opBg : (isFunc ? funcBg : digitBg),
             fg: isOp ? Colors.white : (isFunc ? funcFg : digitFg),
-            fontSize: isOp ? cell * 0.44 : (isFunc ? cell * 0.30 : cell * 0.42),
-            fontWeight: isOp ? FontWeight.w500 : FontWeight.w400,
+            fontSize: isOp ? (label == '=' ? cell * 0.58 : cell * 0.44) : (isFunc ? cell * 0.30 : cell * 0.42),
+            fontWeight: isOp ? (label == '=' ? FontWeight.w700 : FontWeight.w500) : FontWeight.w400,
             onTap: () => _press(label),
           ),
         );
@@ -931,6 +1013,25 @@ class _HomePageState extends State<HomePage> {
               height: inputH,
           child: Column(
             children: [
+              if (!inputCollapsed && inputH > 140)
+                SizedBox(
+                  height: 38,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.fromLTRB(10, 2, 10, 2),
+                    child: Row(children: [
+                      for (final s in _symbols)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: ActionChip(
+                            visualDensity: VisualDensity.compact,
+                            label: Text(s[0], style: const TextStyle(fontSize: 13)),
+                            onPressed: () => _insertSym(s[1]),
+                          ),
+                        ),
+                    ]),
+                  ),
+                ),
               Row(children: [
                 IconButton(
                   icon: Icon(inputCollapsed ? Icons.expand_more : Icons.expand_less),
@@ -966,6 +1067,7 @@ class _HomePageState extends State<HomePage> {
                           Expanded(
                             child: TextField(
                               controller: fnCtrls[i],
+                              focusNode: fnFocus[i],
                               style: TextStyle(fontSize: 15, color: fn.color),
                               decoration: const InputDecoration(
                                 border: InputBorder.none,
@@ -977,18 +1079,14 @@ class _HomePageState extends State<HomePage> {
                           ),
                           IconButton(
                             icon: const Icon(Icons.close, size: 16),
-                            onPressed: () => setState(() {
-                              fnCtrls[i].dispose();
-                              fnCtrls.removeAt(i);
-                              fns.removeAt(i);
-                            }),
+                            onPressed: () => _removeFn(i),
                           ),
                         ]),
                       );
                     },
                   ),
                 ),
-              if (!inputCollapsed)
+              if (!inputCollapsed && inputH > 100)
                 SizedBox(
                   height: 40,
                   child: ListView(
@@ -1128,6 +1226,70 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // ================= 历史面板 =================
+  void _showHistory() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (c) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (ctx, scroll) => Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(children: [
+                const Text('计算历史', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                const Spacer(),
+                if (_history.isNotEmpty)
+                  TextButton(
+                    onPressed: () {
+                      setState(() => _history.clear());
+                      Navigator.pop(c);
+                    },
+                    child: const Text('清空'),
+                  ),
+                IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(c)),
+              ]),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: _history.isEmpty
+                  ? const Center(child: Text('暂无记录', style: TextStyle(color: Colors.grey)))
+                  : ListView.separated(
+                      controller: scroll,
+                      itemCount: _history.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (_, i) {
+                        final h = _history[i];
+                        final text = '${h.expr} = ${h.result}';
+                        return ListTile(
+                          title: Text(text, style: const TextStyle(fontSize: 15)),
+                          onTap: () {
+                            calcCtrl.text = h.expr;
+                            Navigator.pop(c);
+                          },
+                          trailing: IconButton(
+                            icon: const Icon(Icons.copy, size: 18),
+                            tooltip: '复制',
+                            onPressed: () {
+                              Clipboard.setData(ClipboardData(text: text));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(duration: Duration(seconds: 1), content: Text('已复制')),
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // ================= 外壳 =================
   @override
   Widget build(BuildContext context) {
@@ -1136,6 +1298,12 @@ class _HomePageState extends State<HomePage> {
         title: Text(mode == 0 ? '科学计算器' : '图形计算器'),
         elevation: 0.5,
         actions: [
+          if (mode == 0)
+            IconButton(
+              icon: const Icon(Icons.history),
+              tooltip: '计算历史',
+              onPressed: _showHistory,
+            ),
           TextButton(
             onPressed: () => setState(() => deg = !deg),
             style: TextButton.styleFrom(
