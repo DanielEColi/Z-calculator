@@ -117,3 +117,6 @@ app.*.symbols
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 !/dev/ci/**/Gemfile.lock
+# WorkBuddy 项目数据与本地构建产物不入库
+.workbuddy/
+*.apk
