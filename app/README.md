@@ -1,16 +1,155 @@
-# sci_graph_calc
+# 科学计算器 + 图形计算器（Flutter / Android）
 
-A new Flutter project.
+一套 Flutter 代码实现的计算器 App，包含「科学计算器」与「图形计算器」两个页面。
+表达式解析引擎、绘图引擎、界面均为自研，无第三方数学库依赖。
 
-## Getting Started
+- 包名：`com.workbuddy.sci_graph_calc`
+- 当前版本：**v0.3.0**（versionCode 15）
+- 权限：**无**（APK 零权限，不申请网络 / 存储 / 通知）
+- 依赖：`shared_preferences`（仅用于本地持久化）
 
-This project is a starting point for a Flutter application.
+---
 
-A few resources to get you started if this is your first Flutter project:
+## 功能特性
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### 计算器页
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- 实时求值：输入表达式即预览结果，无需按 `=`
+- 四级信息层级（Google 双行式）：`ans` 元信息 → 历史灰字（最多 3 行）→ 当前表达式 → 结果大字
+- 纸带历史：按 `=` 提交当前行入带并换行，历史面板可回填
+- 进制联动：整数结果同时显示 HEX / OCT / BIN，二进制按字节（8 位）空格分组，点按复制
+- 双键盘：科学键盘 / 基本键盘，可通过按钮或左右滑动切换
+- 多项式求根：Durand-Kerner 迭代求全部根（含复根）
+- **微积分与方程求根**（表达式内联，可参与四则运算与嵌套）：
+  - `integral(f, a, b)` 定积分，自适应 Simpson，能绕开 `1/x`、`tan` 等极点
+  - `diff(f, x0)` 数值导数（中心差分），`diff(f, x0, h)` 可指定步长
+  - `solve(f, a, b)` 在给定区间内求零点：扫描定位 + 二分收敛
+  - 工具栏「∫」按钮可图形化生成上述表达式，不必记忆语法
+- **持久化**：历史、纸带、`ans`、函数列表与参数值写入本地，重启自动恢复
+
+### 图形页
+
+- 显式函数 `y = f(x)` 与隐式方程 `F(x,y) = 0`（等值线绘制），一键切换并自动改写表达式
+- 参数自动提取：表达式中出现的字母自动生成滑块，**区分大小写**（`A` 与 `a` 是两个参数）
+- 参数滑块：初始范围 −10~10，拖到边缘自动翻倍扩展；点按数值可精确输入
+- 参数面板两列网格布局，多参数不越出页面
+- 符号条：`x`、`x²`、`e`、`π` 用衬线斜体（公式字体），运算符与函数名保持正体
+- 等比例视口：保证圆不会被画成椭圆；滚轮 / 双指缩放、拖动平移、双击复位
+- 自适应刻度、断笔检测（处理 `1/x`、`tan` 等不连续点）
+- **读值标注**（标题栏标签图标开关）：自动标注零点、极大/极小、两函数交点，坐标由 `solveRoot` + 数值导数精确求解（不是采样插值近似）
+- **积分面积着色**（标题栏面积图图标）：选择函数与上下限，填充 ∫ 区域并实时显示积分值
+- 宽屏分栏：横屏 / 平板时左侧常驻输入区，右侧绘图区
+
+### 数据拟合页（底部第三个菜单）
+
+- 数据输入：每行一组 `x y`，支持空格 / 半角逗号 / 中文逗号 / 制表符分隔，忽略空行与 `#` 注释
+- 拟合模型：线性、二次多项式、三次多项式、指数、对数、幂（后三者自动做对数变换后最小二乘）
+- 指标：方程文本、`R²`、`n`、皮尔逊相关系数 `r`
+- 散点图：红点 + 蓝色拟合曲线，自动把拟合曲线的取值范围纳入坐标范围
+- 一键「送到图形页」：把拟合出的表达式追加为图形页的一条函数
+- 数据与拟合类型同样持久化
+
+### 宽屏（横屏 / 平板）布局
+
+- **计算器页**：左侧「显示区 + 常驻历史列表」，右侧「工具栏 + 键盘」
+- **图形页**：左侧常驻输入区（符号条 / 函数 / 参数），右侧绘图区
+- 判定依据为窗口宽高比 ≥ 1.5 且宽度 ≥ 480，避免近似正方形的窗口被误判
+
+---
+
+## 构建
+
+```bash
+cd app
+# 必须用 JDK 17：Gradle 7.4 在 JDK 20 下无法编译新版插件的 build.gradle
+# （会报 Unsupported class file major version 64）
+export JAVA_HOME=/opt/jdk17
+export PATH=/opt/jdk17/bin:$PATH
+export ANDROID_SDK_ROOT=/opt/android-sdk
+export ANDROID_HOME=/opt/android-sdk
+flutter pub get
+flutter analyze          # 期望 0 error
+flutter test             # 期望全部通过
+flutter build apk --release
+```
+
+产物：`app/build/app/outputs/flutter-apk/app-release.apk`
+
+命名规范：`graph_calc_v<MAJOR>.<MINOR>.<PATCH>.apk`，例如 `graph_calc_v0.1.0.apk`。
+
+---
+
+## 版本规范
+
+> 本节为强制约定，每次改动都必须遵守。
+
+1. **语义化版本（SemVer 2.0.0）**：`MAJOR.MINOR.PATCH`
+   - `MAJOR`：不兼容的界面 / 交互 / 数据格式变更
+   - `MINOR`：向下兼容的新功能
+   - `PATCH`：向下兼容的问题修复、样式微调
+2. **序列起点为 `v0.1.0`**。`0.x.y` 表示初始开发阶段（允许破坏性调整）；进入稳定期后发布 `v1.0.0`。
+3. **`versionCode` 必须单调递增**（Android 安装覆盖的硬性要求），与 `versionName` 解耦：
+   - `pubspec.yaml` 写 `version: <versionName>+<versionCode>`
+   - 每次发版 `versionCode` +1，**不允许回退或复用**
+4. **每次改动必须同步更新本文件的「变更历史」**，在顶部追加一条，包含：版本号、日期、变更类型、具体内容。
+5. **每次发版必须重新构建 APK**，并按命名规范输出，不覆盖旧版本文件。
+
+变更类型标记：`新增` / `修改` / `修复` / `移除`。
+
+---
+
+## 变更历史
+
+### v0.3.0 — 2026-10-25
+
+- 新增：**数据拟合页**，底部导航新增第三个菜单「数据」（与计算器、图形并列）
+  - 解析「每行一组 x y」的数据，支持空格 / 逗号 / 中文逗号 / 制表符
+  - 线性 / 二次 / 三次 / 指数 / 对数 / 幂六类拟合（多项式用正规方程 + 高斯消元，指数对数幂先做变量变换）
+  - 输出方程、R²、n、皮尔逊 r，并绘制散点图与拟合曲线
+  - 「送到图形页」把拟合表达式追加为图形页函数
+- 新增：**读值标注**（可开关）—— 零点、极大 / 极小、两函数交点，坐标用 `solveRoot` 与数值导数精确收敛，替代原先的采样线性插值（原实现只能给出 `x≈` 近似值）
+- 新增：**积分面积着色** —— 选函数与上下限后在图上填充 ∫ 区域，对话框内实时显示积分值，可一键清除
+- 修改：拟合类型 `Pt` / `FitResult` 由私有改为公开，便于测试直接覆盖拟合引擎
+- 修改：图形页标题栏新增「标注开关」「积分面积着色」两个入口（与原有复位视图并列）
+
+### v0.2.0 — 2026-10-25
+
+- 新增：计算历史、纸带、`ans`、图形页函数列表与参数值持久化到本地，重启自动恢复（合并写入，800ms 防抖；未读完盘不允许回写，避免抹掉历史）
+- 新增：`integral(f,a,b)` 定积分（自适应 Simpson，自动绕开极点）、`diff(f,x0[,h])` 数值导数、`solve(f,a,b)` 区间求零点；三者均可作为表达式的一部分参与运算与嵌套
+- 新增：工具栏「∫ 微积分 / 方程求根」入口，图形化生成表达式并回填输入框，同时展示语法预览
+- 新增：宽屏（横屏 / 平板）分栏布局——计算器页左侧常驻历史栏，图形页左侧常驻输入区
+- 修改：解析器新增 lambda 参数支持与 `,` 分隔；`integral` / `diff` / `solve` 不再被拆成单字母变量
+- 修改：`_calcPage` 拆分为 `_calcDisplay` / `_historyPane` / `_calcToolbar`，`_graphPage` 拆分为 `_graphInput` / `_graphCanvas`
+- 修复：宽屏判定改用窗口宽高比（≥1.5），避免 `MediaQuery.orientation` 把 800×600 这类窗口判成横屏
+
+### v0.1.1 — 2026-10-25
+
+- 修复：源码下载链接不可用。公网 electron 层（腾讯云 WAF）会拦截服务器直返的 `.zip` 请求并返回 403 拦截页；改为把 zip 以 base64 **内联进下载页**，由浏览器端 JS 还原为 Blob 下载，不经过服务器的 zip 通道
+- 修复：下载页 APK 直链的 `sharecode` 改为在页面加载时从当前 URL 自动拼接，不再依赖手写固定值，带/不带 sharecode 的入口均可下载
+- 修改：下载页改为由 `gen_dl.py` 生成，版本号（versionName / versionCode）从 `pubspec.yaml` 读取、变更历史从本文件读取，杜绝手写不同步
+- 修改：下载的源码包文件名带上版本号（`app_source_v<版本>.zip`）
+
+### v0.1.0 — 2026-10-24
+
+首个纳入规范版本序列的发布。
+
+- 新增：计算结果区采用 Google 双行式布局（元信息 / 历史灰字 / 表达式 / 结果大字 / 进制芯片）
+- 新增：符号条公式字体渲染，`x²` 采用底数斜体 + 指数正体的排版
+- 修改：`DEG` / `RAD` 只保留标题栏一处，显示区不再重复
+- 修改：进制行改为固定优先级显示，整数结果必定出现在结果下方
+- 修复：结果为空时结果区不再保留 44px 空行
+- 修复：显示区高度预算精确分配，任意屏幕高度下不溢出、不留半行残片
+
+## 目录结构
+
+```
+.
+├── app/                     Flutter 工程
+│   ├── lib/main.dart        全部源码（表达式引擎、绘图器、双页面 UI）
+│   ├── test/                单元测试与 Widget 测试
+│   ├── android/             Android 工程配置
+│   └── pubspec.yaml         版本号在此维护
+├── graph_calc_v0.1.0.apk    产物
+├── app_source.zip           源码包
+└── host/                    下载页（静态站点）
+```

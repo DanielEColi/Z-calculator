@@ -15,14 +15,16 @@ void main() {
     // 点击切换到 RAD
     await tester.tap(degInAppBar);
     await tester.pump();
-    expect(find.text('RAD'), findsNWidgets(2)); // AppBar 与计算器页两个药丸同步
+    // v1.10 起 DEG/RAD 只保留标题栏一处，不再在显示区重复
+    expect(find.text('RAD'), findsOneWidget);
+    expect(find.descendant(of: find.byType(AppBar), matching: find.text('RAD')), findsOneWidget);
     expect(find.text('DEG'), findsNothing);
 
     // 再点回 DEG
     final radInAppBar = find.descendant(of: find.byType(AppBar), matching: find.text('RAD'));
     await tester.tap(radInAppBar);
     await tester.pump();
-    expect(find.text('DEG'), findsNWidgets(2));
+    expect(find.text('DEG'), findsOneWidget);
     expect(find.text('RAD'), findsNothing);
   });
 
