@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.workbuddy.sci_graph_calc">
+    package="com.daniel.zcalculator">
    <application
-        android:label="科学计算器"
+        android:label="Z-Calculator"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

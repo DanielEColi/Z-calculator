@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sci_graph_calc/main.dart';
+import 'package:z_calculator/main.dart';
 
 void main() {
   testWidgets('图形区占比：默认 > 55%，分隔条拖到底仍 > 40%', (tester) async {

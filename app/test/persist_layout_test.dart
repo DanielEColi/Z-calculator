@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sci_graph_calc/main.dart';
+import 'package:z_calculator/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

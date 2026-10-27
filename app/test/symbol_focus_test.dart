@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sci_graph_calc/main.dart';
+import 'package:z_calculator/main.dart';
 
 void main() {
   // 复现真机场景：先聚焦函数输入框并输入文本，再点符号条

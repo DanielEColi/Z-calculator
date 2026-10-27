@@ -20,7 +20,7 @@ class _SciGraphCalcAppState extends State<SciGraphCalcApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '科学计算器',
+      title: 'Z-Calculator',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.light,
@@ -2240,10 +2240,15 @@ class _HomePageState extends State<HomePage> {
             if (rows > 0)
               SizedBox(
                 height: rows * _tapeLineH,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [for (final t in _tape.reversed.take(rows)) _tapeLine(t)],
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.bottomRight,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [for (final t in _tape.reversed.take(rows)) _tapeLine(t)],
+                  ),
                 ),
               ),
             // ③ 当前表达式（中等字号，主输入行）
@@ -3441,7 +3446,7 @@ class _HomePageState extends State<HomePage> {
             onPressed: () => setState(() => deg = !deg),
             style: TextButton.styleFrom(
               backgroundColor: Colors.white.withOpacity(0.22),
-              primary: Colors.white,
+              foregroundColor: Colors.white,
               shape: const StadiumBorder(),
               minimumSize: const Size(58, 34),
               padding: const EdgeInsets.symmetric(horizontal: 14),

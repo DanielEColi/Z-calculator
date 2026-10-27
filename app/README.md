@@ -3,7 +3,7 @@
 一套 Flutter 代码实现的计算器 App，包含「科学计算器」与「图形计算器」两个页面。
 表达式解析引擎、绘图引擎、界面均为自研，无第三方数学库依赖。
 
-- 包名：`com.workbuddy.sci_graph_calc`
+- 包名：`com.daniel.zcalculator`
 - 当前版本：**v0.3.0**（versionCode 15）
 - 权限：**无**（APK 零权限，不申请网络 / 存储 / 通知）
 - 依赖：`shared_preferences`（仅用于本地持久化）
@@ -75,7 +75,7 @@ flutter build apk --release
 
 产物：`app/build/app/outputs/flutter-apk/app-release.apk`
 
-命名规范：`graph_calc_v<MAJOR>.<MINOR>.<PATCH>.apk`，例如 `graph_calc_v0.1.0.apk`。
+命名规范：`z_calculator_v<MAJOR>.<MINOR>.<PATCH>.apk`，例如 `z_calculator_v0.1.0.apk`。（v0.3.0 及更早版本使用旧前缀 `graph_calc_`）
 
 ---
 
@@ -99,6 +99,12 @@ flutter build apk --release
 ---
 
 ## 变更历史
+
+### Unreleased
+
+- 修改：**统一 APP 命名**——品牌名 / 桌面显示名 / MaterialApp title 改为 `Z-Calculator`；Dart 包名 `sci_graph_calc` → `z_calculator`；Android `applicationId` 与 Kotlin 包路径 `com.workbuddy.sci_graph_calc` → `com.daniel.zcalculator`
+- 修改：APK 命名规范 `graph_calc_v<版本>.apk` → `z_calculator_v<版本>.apk`
+- 注意：`applicationId` 变更后，已安装旧版（graph_calc_v0.3.0.apk 及更早）的设备无法覆盖升级，需卸载重装
 
 ### v0.3.0 — 2026-10-25
 
@@ -149,7 +155,7 @@ flutter build apk --release
 │   ├── test/                单元测试与 Widget 测试
 │   ├── android/             Android 工程配置
 │   └── pubspec.yaml         版本号在此维护
-├── graph_calc_v0.1.0.apk    产物
+├── z_calculator_v<版本>.apk 产物
 ├── app_source.zip           源码包
 └── host/                    下载页（静态站点）
 ```

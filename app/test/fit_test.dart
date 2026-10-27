@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sci_graph_calc/main.dart';
+import 'package:z_calculator/main.dart';
 
 void main() {
   test('数据解析：空格 / 逗号 / 中文逗号 / 制表符 / 空行与注释', () {

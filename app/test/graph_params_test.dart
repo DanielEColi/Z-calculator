@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sci_graph_calc/main.dart';
+import 'package:z_calculator/main.dart';
 
 void main() {
   test('参数提取：保留原始大小写，A 与 a 是不同参数', () {

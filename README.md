@@ -7,7 +7,7 @@
 
 一套 Flutter 代码实现的**离线**计算器 App，包含「科学计算器」「图形计算器」「数据拟合」三个页面。表达式解析引擎、绘图引擎、界面均为自研，**无第三方数学库依赖**；不联网、不登录、无广告，APK 零权限（不申请网络 / 存储 / 通知）。
 
-- 包名：`com.workbuddy.sci_graph_calc`
+- 包名：`com.daniel.zcalculator`
 - 当前版本：**v0.3.0**（versionCode 15）
 - 唯一依赖：`shared_preferences`（仅用于本地持久化）
 
@@ -47,7 +47,7 @@
 
 ## 下载
 
-前往 [**Releases**](https://github.com/DanielEColi/Z-calculator/releases) 下载最新 APK，命名规范为 `graph_calc_v<版本>.apk`（如 `graph_calc_v0.3.0.apk`）。
+前往 [**Releases**](https://github.com/DanielEColi/Z-calculator/releases) 下载最新 APK，命名规范为 `z_calculator_v<版本>.apk`（v0.3.0 及更早的发布附件沿用旧前缀 `graph_calc_`）。
 
 ## 从源码构建
 

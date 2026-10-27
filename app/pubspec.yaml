@@ -1,4 +1,4 @@
-name: sci_graph_calc
+name: z_calculator
 description: Offline scientific & graphing calculator with data fitting (pure Dart engines, no math library deps).
 
 # The following line prevents the package from being accidentally published to

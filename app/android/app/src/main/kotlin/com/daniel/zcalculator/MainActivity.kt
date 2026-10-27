@@ -1,4 +1,4 @@
-package com.workbuddy.sci_graph_calc
+package com.daniel.zcalculator
 
 import io.flutter.embedding.android.FlutterActivity
 
