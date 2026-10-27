@@ -47,7 +47,7 @@
 
 ## 下载
 
-前往 [**Releases**](https://github.com/DanielEColi/Z-calculator/releases) 下载最新 APK，命名规范为 `z_calculator_v<版本>.apk`（v0.3.0 及更早的发布附件沿用旧前缀 `graph_calc_`）。
+前往 [**Releases**](https://github.com/DanielEColi/Z-calculator/releases) 下载最新 APK，命名规范为 `z_calculator_v<版本>.apk`（如 `z_calculator_v0.3.0.apk`）。
 
 ## 从源码构建
 

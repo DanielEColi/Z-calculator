@@ -75,7 +75,7 @@ flutter build apk --release
 
 产物：`app/build/app/outputs/flutter-apk/app-release.apk`
 
-命名规范：`z_calculator_v<MAJOR>.<MINOR>.<PATCH>.apk`，例如 `z_calculator_v0.1.0.apk`。（v0.3.0 及更早版本使用旧前缀 `graph_calc_`）
+命名规范：`z_calculator_v<MAJOR>.<MINOR>.<PATCH>.apk`，例如 `z_calculator_v0.3.0.apk`。
 
 ---
 
@@ -104,6 +104,7 @@ flutter build apk --release
 
 - 修改：**统一 APP 命名**——品牌名 / 桌面显示名 / MaterialApp title 改为 `Z-Calculator`；Dart 包名 `sci_graph_calc` → `z_calculator`；Android `applicationId` 与 Kotlin 包路径 `com.workbuddy.sci_graph_calc` → `com.daniel.zcalculator`
 - 修改：APK 命名规范 `graph_calc_v<版本>.apk` → `z_calculator_v<版本>.apk`
+- 修改：GitHub Release 及其 tag 更名为 `z_calculator_v0.3.0`，附件重命名 `z_calculator_v0.3.0.apk`（tag 仍指向原 v0.3.0 提交）
 - 注意：`applicationId` 变更后，已安装旧版（graph_calc_v0.3.0.apk 及更早）的设备无法覆盖升级，需卸载重装
 
 ### v0.3.0 — 2026-10-25
